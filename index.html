@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpiritVale Price Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --bg4:#30363d;
+  --amber:#d4a017;
+  --amber-dim:#a07810;
+  --amber-glow:rgba(212,160,23,.15);
+  --teal:#1d9e75;
+  --teal-dim:#0f6e56;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --text3:#484f58;
+  --border:#30363d;
+  --border-amber:rgba(212,160,23,.35);
+  --danger:#f85149;
+  --radius:8px;
+  --radius-lg:12px;
+}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* ── Layout ── */
+.layout{max-width:760px;margin:0 auto;padding:2rem 1rem 4rem}
+
+/* ── Header ── */
+.hero{
+  text-align:center;
+  padding:2.5rem 0 2rem;
+  position:relative;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:-1rem -50vw;
+  background:radial-gradient(ellipse 60% 120px at 50% 0,rgba(212,160,23,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.logo{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.1em;
+  color:var(--amber);text-transform:uppercase;
+  background:var(--amber-glow);
+  border:1px solid var(--border-amber);
+  border-radius:999px;padding:4px 14px;margin-bottom:1.25rem;
+}
+.logo svg{width:14px;height:14px;fill:var(--amber)}
+h1{
+  font-size:28px;font-weight:600;letter-spacing:-.02em;
+  color:var(--text);margin-bottom:.5rem;
+}
+h1 span{color:var(--amber)}
+.subtitle{font-size:14px;color:var(--text2);max-width:440px;margin:0 auto}
+
+/* ── Search bar ── */
+.search-wrap{
+  display:flex;gap:8px;margin:2rem 0 1rem;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:8px;
+}
+.search-wrap:focus-within{border-color:var(--amber-dim)}
+.search-wrap input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-size:14px;font-family:'Inter',sans-serif;
+  padding:4px 6px;
+}
+.search-wrap input::placeholder{color:var(--text3)}
+.btn-add{
+  background:var(--amber);color:#0d1117;
+  border:none;border-radius:var(--radius);
+  font-size:13px;font-weight:600;
+  padding:7px 16px;cursor:pointer;
+  white-space:nowrap;transition:background .15s,transform .1s;
+}
+.btn-add:hover{background:#c49010}
+.btn-add:active{transform:scale(.97)}
+
+/* ── Quick tags ── */
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.tag{
+  font-size:12px;padding:3px 10px;border-radius:999px;
+  border:1px solid var(--border);
+  color:var(--text2);background:transparent;
+  cursor:pointer;transition:all .15s;
+}
+.tag:hover{border-color:var(--amber-dim);color:var(--amber);background:var(--amber-glow)}
+
+/* ── Section labels ── */
+.section-label{
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);font-family:'JetBrains Mono',monospace;
+  margin-bottom:.75rem;
+}
+
+/* ── Empty state ── */
+.empty{
+  text-align:center;padding:3rem 1rem;
+  color:var(--text3);font-size:13px;
+  border:1px dashed var(--border);
+  border-radius:var(--radius-lg);
+}
+.empty svg{display:block;margin:0 auto 12px;opacity:.3}
+
+/* ── Item cards ── */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item-card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:12px 14px;
+  display:grid;
+  grid-template-columns:1fr auto auto auto;
+  align-items:center;gap:10px;
+  transition:border-color .15s;
+  animation:fadeIn .2s ease;
+}
+.item-card:hover{border-color:var(--bg4)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.item-name{
+  font-size:14px;font-weight:500;color:var(--text);
+}
+.item-type{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text3);
+}
+
+.price-note{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--amber);padding:4px 10px;width:120px;
+  outline:none;transition:border-color .15s;
+}
+.price-note:focus{border-color:var(--amber-dim)}
+.price-note::placeholder{color:var(--text3);font-size:11px}
+
+.btn-check{
+  display:inline-flex;align-items:center;gap:5px;
+  background:transparent;
+  border:1px solid var(--teal-dim);
+  color:var(--teal);
+  border-radius:var(--radius);
+  padding:5px 12px;font-size:12px;font-weight:500;
+  cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;
+}
+.btn-check:hover{background:rgba(29,158,117,.12);border-color:var(--teal)}
+.btn-check svg{width:13px;height:13px;stroke:currentColor;fill:none}
+
+.btn-remove{
+  background:transparent;border:none;cursor:pointer;
+  color:var(--text3);padding:4px;border-radius:var(--radius);
+  display:flex;align-items:center;
+  transition:color .15s;
+}
+.btn-remove:hover{color:var(--danger)}
+.btn-remove svg{width:15px;height:15px;stroke:currentColor;fill:none}
+
+/* ── Bottom actions ── */
+.actions{
+  display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap;
+}
+.btn-all{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--amber);color:#0d1117;
+  border:none;border-radius:var(--radius);
+  font-size:13px;font-weight:600;padding:10px;cursor:pointer;
+  transition:background .15s,transform .1s;min-width:180px;
+}
+.btn-all:hover{background:#c49010}
+.btn-all:active{transform:scale(.98)}
+.btn-all:disabled{opacity:.35;cursor:not-allowed}
+.btn-clear{
+  background:transparent;border:1px solid var(--border);
+  border-radius:var(--radius);font-size:13px;color:var(--text2);
+  padding:10px 16px;cursor:pointer;transition:all .15s;
+}
+.btn-clear:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ── Tips ── */
+.tip-box{
+  margin-top:2rem;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:1rem 1.25rem;
+}
+.tip-box h3{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:.5rem}
+.tip-box ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.tip-box li{font-size:12px;color:var(--text3);display:flex;gap:6px;align-items:baseline}
+.tip-box li::before{content:'›';color:var(--amber);flex-shrink:0}
+
+/* ── Footer ── */
+footer{
+  text-align:center;margin-top:3rem;
+  font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;
+}
+footer a{color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--amber)}
+
+/* ── Responsive ── */
+@media(max-width:520px){
+  .item-card{grid-template-columns:1fr auto auto;grid-template-rows:auto auto}
+  .price-note{grid-column:1;width:100%}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Header -->
+  <div class="hero">
+    <div class="logo">
+      <svg viewBox="0 0 16 16"><path d="M8 1L10 6H15L11 9.5L12.5 15L8 12L3.5 15L5 9.5L1 6H6Z"/></svg>
+      SpiritVale Market Tool
+    </div>
+    <h1>Price <span>Checker</span></h1>
+    <p class="subtitle">เพิ่ม item ที่จะขาย แล้วเปิดเช็คราคาใน spiritvalemarket.com ได้ทันที</p>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="2" style="flex-shrink:0;align-self:center;margin-left:4px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="itemInput" placeholder="ชื่อ item เช่น Iron Sword, Angel Card, Larva..." autocomplete="off" />
+    <button class="btn-add" onclick="addItem()">+ เพิ่ม</button>
+  </div>
+
+  <!-- Quick Tags -->
+  <div class="tags" id="tagRow"></div>
+
+  <!-- Item list -->
+  <div class="section-label">รายการ watchlist (<span id="countLabel">0</span> item)</div>
+  <div id="listWrap">
+    <div class="empty" id="emptyState">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      ยังไม่มี item — พิมพ์ชื่อแล้วกดเพิ่ม หรือเลือกจากตัวอย่างด้านบน
+    </div>
+    <div class="item-list" id="itemList"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-all" id="checkAllBtn" onclick="checkAll()" disabled>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      เปิดเช็คราคาทั้งหมด
+    </button>
+    <button class="btn-clear" onclick="clearAll()">ล้างทั้งหมด</button>
+  </div>
+
+  <!-- Tips -->
+  <div class="tip-box">
+    <h3>วิธีใช้</h3>
+    <ul>
+      <li>พิมพ์ชื่อ item แล้วกด Enter หรือกดปุ่ม + เพิ่ม</li>
+      <li>กด "เช็คราคา" ทีละ item หรือ "เปิดเช็คราคาทั้งหมด" เพื่อเปิดพร้อมกัน</li>
+      <li>จดราคาที่เห็นในช่อง price note ได้เลย — บันทึกอัตโนมัติ</li>
+      <li>ข้อมูล watchlist บันทึกใน browser ไม่หายแม้ปิดหน้าต่าง</li>
+    </ul>
+  </div>
+
+  <footer>
+    ข้อมูลราคามาจาก <a href="https://spiritvalemarket.com" target="_blank">spiritvalemarket.com</a> &nbsp;·&nbsp;
+    ทำโดย บิวตี้ 🤍
+  </footer>
+
+</div>
+
+<script>
+const MARKET_BASE = 'https://spiritvalemarket.com/?view=vending&item=';
+const STORAGE_KEY = 'sv_watchlist_v1';
+const NOTES_KEY   = 'sv_notes_v1';
+
+const EXAMPLES = [
+  'Angel Card','Iron Sword','Abyss Shard','Larva',
+  'Amber Bow','Ingot Iron','Silica Sand','Iron Spear'
+];
+
+let watchlist = [];
+let notes = {};
+
+function load() {
+  try { watchlist = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) { watchlist = []; }
+  try { notes = JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch(e) { notes = {}; }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist));
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+}
+
+function buildTags() {
+  const row = document.getElementById('tagRow');
+  EXAMPLES.forEach(name => {
+    const t = document.createElement('span');
+    t.className = 'tag';
+    t.textContent = name;
+    t.onclick = () => { document.getElementById('itemInput').value = name; addItem(); };
+    row.appendChild(t);
+  });
+}
+
+function addItem() {
+  const inp = document.getElementById('itemInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  const norm = val.replace(/\s+/g,' ');
+  if (!watchlist.includes(norm)) {
+    watchlist.push(norm);
+    save();
+  }
+  inp.value = '';
+  render();
+}
+
+function removeItem(name) {
+  watchlist = watchlist.filter(x => x !== name);
+  delete notes[name];
+  save();
+  render();
+}
+
+function clearAll() {
+  if (!watchlist.length) return;
+  if (!confirm('ล้างรายการทั้งหมดไหมคะ?')) return;
+  watchlist = [];
+  notes = {};
+  save();
+  render();
+}
+
+function saveNote(name, val) {
+  notes[name] = val;
+  save();
+}
+
+function checkAll() {
+  watchlist.forEach((name, i) => {
+    setTimeout(() => window.open(MARKET_BASE + encodeURIComponent(name), '_blank'), i * 150);
+  });
+}
+
+function marketUrl(name) {
+  return MARKET_BASE + encodeURIComponent(name);
+}
+
+function render() {
+  const list  = document.getElementById('itemList');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('countLabel');
+  const allBtn= document.getElementById('checkAllBtn');
+
+  count.textContent = watchlist.length;
+  allBtn.disabled   = watchlist.length === 0;
+
+  if (watchlist.length === 0) {
+    empty.style.display = '';
+    list.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = watchlist.map((name, i) => `
+    <div class="item-card">
+      <div>
+        <div class="item-name">${escHtml(name)}</div>
+        <div class="item-type">#${i+1} · watchlist</div>
+      </div>
+      <input
+        class="price-note"
+        type="text"
+        placeholder="จดราคา..."
+        value="${escHtml(notes[name] || '')}"
+        oninput="saveNote('${escJs(name)}', this.value)"
+        aria-label="จดราคา ${escHtml(name)}"
+      />
+      <a class="btn-check" href="${marketUrl(name)}" target="_blank" rel="noopener" aria-label="เช็คราคา ${escHtml(name)}">
+        <svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        เช็คราคา
+      </a>
+      <button class="btn-remove" onclick="removeItem('${escJs(name)}')" aria-label="ลบ ${escHtml(name)}">
+        <svg viewBox="0 0 24 24" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escJs(s) {
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+document.getElementById('itemInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+
+load();
+buildTags();
+render();
+</script>
+</body>
+</html>
