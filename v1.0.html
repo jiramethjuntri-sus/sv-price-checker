@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpiritVale Price Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --amber:#d4a017;--amber-dim:#a07810;--amber-glow:rgba(212,160,23,.15);
+  --teal:#1d9e75;--teal-dim:#0f6e56;
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --border:#30363d;--border-amber:rgba(212,160,23,.35);
+  --danger:#f85149;--radius:8px;--radius-lg:12px
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.layout{max-width:760px;margin:0 auto;padding:2rem 1rem 4rem}
+
+/* Hero */
+.hero{text-align:center;padding:2.5rem 0 2rem;position:relative}
+.hero::before{content:'';position:absolute;inset:-1rem -50vw;background:radial-gradient(ellipse 60% 120px at 50% 0,rgba(212,160,23,.08) 0%,transparent 70%);pointer-events:none}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;background:var(--amber-glow);border:1px solid var(--border-amber);border-radius:999px;padding:4px 14px;margin-bottom:1.25rem}
+.logo svg{width:14px;height:14px;fill:var(--amber)}
+h1{font-size:28px;font-weight:600;letter-spacing:-.02em;margin-bottom:.5rem}
+h1 span{color:var(--amber)}
+.subtitle{font-size:14px;color:var(--text2);max-width:440px;margin:0 auto}
+
+/* Search */
+.search-wrap{position:relative;margin:2rem 0 1rem}
+.search-row{display:flex;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:8px;transition:border-color .15s}
+.search-row:focus-within{border-color:var(--amber-dim)}
+.search-row input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;padding:4px 6px}
+.search-row input::placeholder{color:var(--text3)}
+.btn-add{background:var(--amber);color:#0d1117;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;padding:7px 16px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-add:hover{background:#c49010}
+
+/* Autocomplete */
+.ac-list{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--bg2);border:1px solid var(--border-amber);border-radius:var(--radius-lg);z-index:100;max-height:270px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.ac-list.open{display:block}
+.ac-item{padding:8px 14px;cursor:pointer;font-size:13px;color:var(--text2);border-left:2px solid transparent;transition:all .1s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-item:hover,.ac-item.sel{background:var(--bg3);color:var(--text);border-left-color:var(--amber)}
+.ac-item b{color:var(--amber);font-weight:500}
+.ac-foot{font-size:11px;color:var(--text3);padding:5px 14px 7px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+
+/* Actions */
+.section-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:.75rem}
+.actions{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.btn-all{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--amber);color:#0d1117;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;padding:10px;cursor:pointer;transition:background .15s;min-width:180px}
+.btn-all:hover{background:#c49010}
+.btn-all:disabled{opacity:.35;cursor:not-allowed}
+.btn-clear{background:transparent;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text2);padding:10px 16px;cursor:pointer;transition:all .15s}
+.btn-clear:hover{border-color:var(--danger);color:var(--danger)}
+
+/* Empty */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px;border:1px dashed var(--border);border-radius:var(--radius-lg)}
+.empty svg{display:block;margin:0 auto 12px;opacity:.3}
+
+/* Cards */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.item-name{font-size:14px;font-weight:500;color:var(--text)}
+.item-idx{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.btn-check{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--teal-dim);color:var(--teal);border-radius:var(--radius);padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap}
+.btn-check:hover{background:rgba(29,158,117,.1);border-color:var(--teal)}
+.btn-rm{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px 5px;line-height:1;transition:color .15s}
+.btn-rm:hover{color:var(--danger)}
+
+/* Tips */
+.tip-box{margin-top:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem}
+.tip-box h3{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:.5rem}
+.tip-box ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.tip-box li{font-size:12px;color:var(--text3);display:flex;gap:6px}
+.tip-box li::before{content:'›';color:var(--amber);flex-shrink:0}
+
+footer{text-align:center;margin-top:3rem;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--amber)}
+
+@media(max-width:520px){
+  .item-card{grid-template-columns:1fr auto auto}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="hero">
+    <div class="logo">
+      <svg viewBox="0 0 16 16"><path d="M8 1L10 6H15L11 9.5L12.5 15L8 12L3.5 15L5 9.5L1 6H6Z"/></svg>
+      SpiritVale Market Tool
+    </div>
+    <h1>Price <span>Checker</span></h1>
+    <p class="subtitle">เพิ่ม item ที่ต้องการขาย แล้วเปิดเช็คราคาใน spiritvalemarket.com ได้ทันที — ฟรี 100%</p>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="2" style="flex-shrink:0;align-self:center;margin-left:4px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="itemInput" placeholder="ค้นหา item เช่น iron, larva, angel card..." autocomplete="off"/>
+      <button class="btn-add" onclick="addItem()">+ เพิ่ม</button>
+    </div>
+    <div class="ac-list" id="acList"></div>
+  </div>
+
+  <div class="section-label">watchlist (<span id="countLabel">0</span> item)</div>
+
+  <div class="actions">
+    <button class="btn-all" id="checkAllBtn" disabled>
+      ↗ เปิดเช็คราคาทั้งหมด
+    </button>
+    <button class="btn-clear" onclick="clearAll()">ล้างทั้งหมด</button>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    พิมพ์ชื่อ item แล้วเลือกจาก popup หรือกด Enter เพื่อเพิ่มได้เลยค่ะ
+  </div>
+  <div class="item-list" id="itemList"></div>
+
+  <div class="tip-box">
+    <h3>วิธีใช้</h3>
+    <ul>
+      <li>พิมพ์บางส่วนของชื่อ item แล้วเลือกจาก popup ที่แนะนำ (917 items)</li>
+      <li>กด ↑↓ เลื่อน, Enter ยืนยัน, Esc ปิด popup</li>
+      <li>กด "เช็คราคา" ทีละ item หรือ "เปิดเช็คราคาทั้งหมด" เพื่อเปิดพร้อมกัน</li>
+      <li>watchlist บันทึกใน browser อัตโนมัติ ไม่หายแม้ปิดหน้าต่างค่ะ</li>
+    </ul>
+  </div>
+
+  <footer>
+    ราคาจาก <a href="https://spiritvalemarket.com" target="_blank">spiritvalemarket.com</a>
+    &nbsp;·&nbsp; ทำโดย บิวตี้ 🤍
+  </footer>
+</div>
+
+<script>
+const MARKET_BASE='https://spiritvalemarket.com/?view=vending&item=';
+const WL_KEY='sv_watchlist_v2';
+// ล้าง key เก่าออก
+try{localStorage.removeItem('sv_watchlist_v1');localStorage.removeItem('sv_notes_v1');}catch(e){}
+
+const ALL_ITEMS=["Abyss Shard","Axe","Axe of Oblivion","Azure Cutlass","Azure Flow","Binding Spirits Staff","Blade of Eclipse","Blight Reaver","Bloom of Midnight","Blunderbuss","Bone Channeler","Bone Pick","Bonefang","Brimblade","Broad Sword","Cerulean Scepter","Chainfrost Staff","Chaos Reaver","Chromatic Blade","Codex of Revelation","Codex Umbra","Codex Vitae","Combat Knife","Crystal Slammer","Dawnstar","Divine Blade","Doom Crescent","Duskfang","Earth Shaker","Eclipse Kunai","Edge of Twilight","Embershard","Everfrost Staff","Executioner Axe","Exorcist Staff","Eye of Vigil","Fang of the Moon","Flame Tongue Kunai","Flameburst Kunai","Flintlock Pistol","Frost Mark","Frostfang","Frostshard","Frostspire Kunai","Fuma Shuriken","Gatling Gun","Glimmerthorn","Golden Axe","Golden Hammer","Gravestone Breaker","Grim Scythe","Grimoire of Binding Light","Guardblade","Harvester of Souls","Hawkeye Crossbow","Hellfire Staff","Holy Staff","Hornbrand","Hunting Knife","Hunting Pike","Iron Morningstar","Iron Reaver","Iron Spear","Jagtooth","Knife","Kunai","Launcher","Life Drinker","Life Staff","Longbow","Luxbane","Luxspire","Mace","Master Axe","Master Bow","Master Codex","Master Dagger","Master Hammer","Master Katar","Master Pistol","Master Scythe","Master Spear","Master Sword","Master Wand","Meteoric Staff","Moonfrost","Necronomicon","Oak Bow","Oathbreaker","Obsidian Edge","Parrying Knife","Phantom Kunai","Piercer","Pistol","Prism Blade","Radiant Dagger","Radiant Scepter","Radiant Wand","Ragebound Fury","Razor Kunai","Recurve Bow","Red Maw","Relic Trident","Repeater Crossbow","Rifle","Riftbreaker","Rod","Royal Blade","Royal Dagger","Royal Fang","Runesmasher","Scalpel","Scrapfang","Scythe","Serpent Fang","Shotgun","Silence of Night","Skullhacker","Skybreaker Staff","Slingshot","Sniper Rifle","Solar Pulse","Solar Spear","Spiked Club","Spineshard","Staff of Eternis","Stiletto","Stonepoint Spear","Stormburst Crossbow","Stormcall Kunai","Stormfeather Kunai","Stormpiercer","Sunflare","Sword","Tempest Staff","Thundercoil","Tomahawk","Tome","Tome of the First Hymn","Trident of Tides","Triple Barrel Revolver","Twinblade","Umbral Blade","Verdant Core","Violet Arc","War Axe","Wasteland Cleaver","Whisper of Thorns","Willow Staff","Windcarver","Windroot","Witch's Whisk","Wraith of Dawn","Wraithlight","Zephyrlight","Arrowcatch Wall","Buckler","Chains of Binding","Compass of Dawn","Elixir Gourd","Fortified Guardwall","Frostspire Guard","Golden Aegis","Heaven's Orbit","Holy Crest","Iron Bulwark","Iron Fortitude","Mage Guard","Molten Core Heater","Obsidian Bulwark","Royal Crest","Sanctum Guard","Shadowsteel Guard","Spirit Familiar","Spirit Ward","Sun Emblem","Sun Lion Crest","Warlord Emblem Shield","Wooden Guard","Zephyr Cross","Arcane Boots","Arcane Chest","Arcane Legs","Ashwalker Chest","Ashwalker Legs","Ashwalker Shoes","Bloodbound","Breezeguard Chest","Breezeguard Legs","Breezeguard Shoes","Cleric Chest","Cleric Legs","Cleric Shoes","Direwolf Chest","Direwolf Legs","Direwolf Shoes","Endurance Greaves","Endurance Plate","Endurance Shoes","Fate Greaves","Fate Plate","Fate Shoes","Ferncloak","Fleetrunner","Forest Chest","Forest Legs","Forest Shoes","Gravemarrow Chest","Gravemarrow Legs","Gravemarrow Shoes","Island Spirit Chest","Island Spirit Legs","Island Spirit Shoes","Lifebloom Shoes","Mage Plate","Mind Greaves","Mind Plate","Mind Shoes","Mindweave","Mirage Cloak","Night Armor","Night Boots","Night Greaves","Novice Chest","Novice Legs","Novice Shoes","Pirate Coat","Pirate Legs","Pirate Shoes","Plasma Boots","Plasma Greaves","Plasma Suit","Power Greaves","Power Plate","Power Shoes","Precision Greaves","Precision Plate","Precision Shoes","Reindeer Chest","Reindeer Legs","Reindeer Shoes","Runecall","Safety Chest","Safety Legs","Safety Shoes","Sanctified Chest","Sanctified Legs","Sanctified Shoes","Santa Chest","Santa Legs","Santa Shoes","Shadow Dancers","Skystrider Chest","Skystrider Legs","Skystrider Shoes","Sonic Shoes","Soulbinder Chest","Soulbinder Legs","Soulbinder Shoes","Speed Greaves","Speed Plate","Speed Shoes","Spellthread Chest","Spellthread Legs","Spellthread Shoes","Stonebound Boots","Stoneguard","Stormplate Chest","Stormplate Legs","Stormplate Shoes","Tempest Robes","Verdant Striders","Voidthreads","Weaver Chest","Weaver Legs","Weaver Shoes","Windstrider Chest","Windstrider Legs","Windstrider Shoes","Witchsteps","Amber Bow","Amber Loop","Arcane Gloves","Archer's Beads","Azure Prism","Azure Tag","Blood Clip","Bloom Pendant","Bloom Ring","Bronze Crescent","Bronze Plugs","Cloud Loop","Darkhide Gloves","Dawn Prayer","Endurance Gauntlets","Fang Clip","Fate Gauntlets","Focus Band","Golden Hoop","Heartloop Earring","Iron Ankh","Knuckleband","Lucky Drops","Mind Gauntlets","Moon Band","Nightfang Stud","Obsidian Band","Obsidian Loop","Onyx Bolt","Pirate Hook","Plum Talisman","Power Gauntlets","Precision Gauntlets","Reindeer Gloves","Safety Gloves","Sanctum Gloves","Santa Gloves","Scroll Charm","Skull Pendant","Speed Gauntlets","Sunbound Mitts","Sunflower Clip","Aethercore","Arcanum","Arcanum Verge","Bastion","Blitzcore","Bloodbind","Corporeal","Eternis","Furybrand","Hawkeye","Hexbrand","Lifebloom","Nullmark","Oathbound","Pioneer","Primordial","Shadebound","Spellweaver","Starfire","Steelheart","Stormquiver","Titanplate","Vampiric","Veilward","Vitalis","Warglyph","Windborne","Angel Card","Angel Mage Card","Archangel Card","Bat Card","Bat Lord Card","Bee Card","Bird Card","Bomb Card","Bunny Card","Cat Bolt Card","Cosmic Entity Card","Cyclops Card","Cyclops Giant Card","Death Card","Death Mage Card","Direwolf Card","Dog Bark Card","Dragon Fire Card","Dragon Ice Card","Dragon Inferno Card","Dragon Water Card","Fire Card","Fire Mage Card","Ghost Card","Goblin King Card","Goblin Warblade Card","Goblin Warchief Card","Grim Reaper Card","Hermit King Card","Ice Card","Ice Mage Card","Kraken Card","Lurker Card","Mega Ice Golem Card","Mushroom Card","Nightmare Card","Rabbit Card","Scorpion Card","Scorpion King Card","Shark Card","Skeleton Card","Skeleton Giant Card","Snake Card","Spider Card","Spider King Card","Spider Queen Card","Vampire Bat Card","Werewolf Card","Wind Card","Wolf Card","Worm Card","Wraith Card","Zombie Goblin Lord Card","Aerial Shot Gem","Air Cutter Gem","Blade Dance Gem","Blizzard Gem","Chain Lightning Gem","Death Nova Gem","Earthquake Gem","Fireball Gem","Heal Gem","Holy Light Gem","Ice Shard Gem","Meteor Gem","Poison Gem","Shadow Step Gem","Shield Bash Gem","Smite Gem","Sniper Shot Gem","Soul Strike Gem","Stomp Gem","Tempest Gem","Thunder Storm Gem","Venom Strike Gem","Whirlwind Gem","Wild Charge Gem","Ingot Iron","Larva","Silica Sand","Gravion Shard","Gravion Chunk","Gravion Crystal","Lunaris Shard","Lunaris Chunk","Lunaris Crystal","Vulkanite Shard","Vulkanite Chunk","Vulkanite Crystal","Gold Ore","Moonstone","Obsidian","Fur","Spider Web","Fishbone","Leaf","Ash","Flax","Coal Hard","Tree Bark","Tree Sap","Marble","Coral Stone","Coconut Oil","Mushroom","Foxtail","Azurite","Oceanite","Resonance Core","Tungsten","Abyssal Idol","Mystery Mount Egg","Mystery Pet Egg","Time Device","Box of Origins","Heaven's Tear Earring","Cosmetic Converter","Blank Pact Scroll"];
+
+let watchlist=[], acIdx=-1, acFiltered=[];
+
+function load(){try{watchlist=JSON.parse(localStorage.getItem(WL_KEY))||[];}catch{watchlist=[];}}
+function save(){localStorage.setItem(WL_KEY,JSON.stringify(watchlist));}
+
+const inp=document.getElementById('itemInput');
+const acEl=document.getElementById('acList');
+
+inp.addEventListener('input',()=>openAC(inp.value.trim()));
+inp.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();moveAC(1);}
+  else if(e.key==='ArrowUp'){e.preventDefault();moveAC(-1);}
+  else if(e.key==='Enter'){e.preventDefault();acIdx>=0?addByName(acFiltered[acIdx]):addItem();}
+  else if(e.key==='Escape')closeAC();
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeAC();});
+
+function openAC(q){
+  if(!q){closeAC();return;}
+  const ql=q.toLowerCase();
+  acFiltered=ALL_ITEMS.filter(i=>i.toLowerCase().includes(ql)).slice(0,10);
+  if(!acFiltered.length){closeAC();return;}
+  acIdx=-1;
+  const total=ALL_ITEMS.filter(i=>i.toLowerCase().includes(ql)).length;
+  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  acEl.innerHTML=acFiltered.map((s,i)=>`<div class="ac-item" onmousedown="addByName('${escJs(s)}')" data-i="${i}">${escHtml(s).replace(re,'<b>$1</b>')}</div>`).join('')
+    +`<div class="ac-foot">${acFiltered.length<total?acFiltered.length+'/'+total:acFiltered.length} รายการ</div>`;
+  acEl.classList.add('open');
+}
+function closeAC(){acEl.classList.remove('open');acIdx=-1;}
+function moveAC(d){
+  const els=acEl.querySelectorAll('.ac-item');
+  if(!els.length)return;
+  els[acIdx]?.classList.remove('sel');
+  acIdx=Math.max(0,Math.min(els.length-1,acIdx+d));
+  els[acIdx]?.classList.add('sel');
+  els[acIdx]?.scrollIntoView({block:'nearest'});
+}
+
+function addItem(){
+  const v=inp.value.trim(); if(!v)return;
+  const m=ALL_ITEMS.find(i=>i.toLowerCase()===v.toLowerCase());
+  addByName(m||v);
+}
+function addByName(name){
+  closeAC(); inp.value=''; inp.focus();
+  if(!watchlist.includes(name)){watchlist.push(name);save();}
+  render();
+}
+function removeItem(name){watchlist=watchlist.filter(x=>x!==name);save();render();}
+function clearAll(){
+  if(!watchlist.length)return;
+  if(!confirm('ล้างรายการทั้งหมดไหมคะ?'))return;
+  watchlist=[];save();render();
+}
+
+function checkAll(){
+  if(!watchlist.length)return;
+  watchlist.forEach(name=>{
+    const a=document.createElement('a');
+    a.href=MARKET_BASE+encodeURIComponent(name);
+    a.target='_blank'; a.rel='noopener noreferrer';
+    a.style.display='none';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  });
+}
+
+function render(){
+  const listEl=document.getElementById('itemList');
+  const emptyEl=document.getElementById('emptyState');
+  const countEl=document.getElementById('countLabel');
+  const allBtn=document.getElementById('checkAllBtn');
+  countEl.textContent=watchlist.length;
+  allBtn.disabled=!watchlist.length;
+  emptyEl.style.display=watchlist.length?'none':'';
+  listEl.innerHTML=watchlist.map((name,i)=>`
+    <div class="item-card">
+      <div>
+        <div class="item-name">${escHtml(name)}</div>
+        <div class="item-idx">#${i+1}</div>
+      </div>
+      <a class="btn-check" href="${MARKET_BASE+encodeURIComponent(name)}" target="_blank" rel="noopener">
+        ↗ เช็คราคา
+      </a>
+      <button class="btn-rm" onclick="removeItem('${escJs(name)}')" aria-label="ลบ ${escHtml(name)}">✕</button>
+    </div>`).join('');
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escJs(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+document.getElementById('checkAllBtn').addEventListener('click',checkAll);
+load(); render();
+</script>
+</body>
+</html>
